@@ -30,19 +30,19 @@
 <div class="controls">
   <div class="ctl">
     <label>Total Ni concentration</label>
-    <div class="rowin"><input id="cNi" type="range" min="-1" max="1" value="-1" step="0.02"><span class="out" id="cNiOut">0.1 M</span></div>
+    <div class="rowin"><input id="cNi" type="range" min="-2" max="1" value="-1" step="0.02"><span class="out" id="cNiOut">0.1 M</span></div>
   </div>
   <div class="ctl">
     <label>Total Mo concentration</label>
-    <div class="rowin"><input id="cMo" type="range" min="-1" max="1" value="0" step="0.02"><span class="out" id="cMoOut">1 M</span></div>
+    <div class="rowin"><input id="cMo" type="range" min="-2" max="1" value="0" step="0.02"><span class="out" id="cMoOut">1 M</span></div>
   </div>
   <div class="ctl">
     <label>Total citrate (H₃cit + …)</label>
-    <div class="rowin"><input id="cCit" type="range" min="-1" max="1" value="-1" step="0.02"><span class="out" id="cCitOut">0.1 M</span></div>
+    <div class="rowin"><input id="cCit" type="range" min="-6" max="1" value="-1" step="0.02"><span class="out" id="cCitOut">0.1 M</span></div>
   </div>
   <div class="ctl">
     <label>Total ammonia (NH₃ + NH₄⁺)</label>
-    <div class="rowin"><input id="cN" type="range" min="-1" max="1" value="-1" step="0.02"><span class="out" id="cNOut">0.1 M</span></div>
+    <div class="rowin"><input id="cN" type="range" min="-6" max="1" value="-1" step="0.02"><span class="out" id="cNOut">0.1 M</span></div>
   </div>
   <div class="ctl">
     <label>Reference electrode</label>
@@ -836,18 +836,25 @@
     }
     // Title
     c.font='500 14px '+fontMain; c.textAlign='left'; c.textBaseline='top'; c.fillStyle='#2C2C2A';
-    c.fillText('Ni-Mo-NH₃-Citrate-H₂O · 25 °C · C_Ni = '+fmtConc(C_Ni)+' · C_Mo = '+fmtConc(C_Mo)+' · C_cit = '+fmtConc(C_Cit)+' · C_NH₃,tot = '+fmtConc(C_N), PADL, 6);
+    const citDisplay = C_Cit <= 2e-6 ? '0 M' : fmtConc(C_Cit);
+    const nh3Display = C_N <= 2e-6 ? '0 M' : fmtConc(C_N);
+    c.fillText('Ni-Mo-NH₃-Citrate-H₂O · 25 °C · C_Ni = '+fmtConc(C_Ni)+' · C_Mo = '+fmtConc(C_Mo)+' · C_cit = '+citDisplay+' · C_NH₃,tot = '+nh3Display, PADL, 6);
   }
 
   function update(){
-    const cNiM = Math.pow(10, parseFloat(document.getElementById('cNi').value));
-    const cMoM = Math.pow(10, parseFloat(document.getElementById('cMo').value));
-    const cCM  = Math.pow(10, parseFloat(document.getElementById('cCit').value));
-    const cNM  = Math.pow(10, parseFloat(document.getElementById('cN').value));
+    const cNiSlider = parseFloat(document.getElementById('cNi').value);
+    const cMoSlider = parseFloat(document.getElementById('cMo').value);
+    const cCitSlider = parseFloat(document.getElementById('cCit').value);
+    const cNSlider = parseFloat(document.getElementById('cN').value);
+    const cNiM = Math.pow(10, cNiSlider);
+    const cMoM = Math.pow(10, cMoSlider);
+    const cCM  = Math.pow(10, cCitSlider);
+    const cNM  = Math.pow(10, cNSlider);
     document.getElementById('cNiOut').textContent = fmtConc(cNiM);
     document.getElementById('cMoOut').textContent = fmtConc(cMoM);
-    document.getElementById('cCitOut').textContent = fmtConc(cCM);
-    document.getElementById('cNOut').textContent  = fmtConc(cNM);
+    // Show "0 M" for Cit / NH3 when at slider minimum (-6 = 1 µM, effectively zero for plating purposes)
+    document.getElementById('cCitOut').textContent = cCitSlider <= -5.99 ? '0 M' : fmtConc(cCM);
+    document.getElementById('cNOut').textContent   = cNSlider   <= -5.99 ? '0 M' : fmtConc(cNM);
     draw(cv);
     document.getElementById('info').textContent = 'Citrate, ammonia, and molybdate all compete for Ni²⁺. The NiMo₆O₂₄H₆⁴⁻ heteropolymolybdate appears whenever Mo dominates: high Mo, low citrate. Add more citrate to break it apart.';
   }
